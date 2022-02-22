@@ -7,7 +7,7 @@ using Autodesk.Revit.DB;
 
 namespace Insolaris.Geometry
 {
-    public class SurfacePointWithValues
+    public sealed class SurfacePointWithValues
     {
         public UV PointUV { get; }
         public XYZ Point3D { get; }

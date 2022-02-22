@@ -10,7 +10,10 @@ namespace Insolaris.Model
 {
     public class ConceptualBuilding : ConstructionObject
     {
-        public override Element RevitElement { get; }
-        public override List<CalculationSurface> Surfaces { get; }
+        public ConceptualBuilding(Element element)
+        {
+            RevitElement = element;
+            Surfaces = GetCalculationSurfaces(element, true);
+        }
     }
 }

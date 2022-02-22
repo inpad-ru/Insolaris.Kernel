@@ -30,7 +30,7 @@ namespace Insolaris.Geometry
         {
             if (settings.SunAndShadowType != SunAndShadowType.OneDayStudy)
                 throw new InvalidOperationException("One day study sun settings required.");
-
+            
             StartDateTime = settings.StartDateAndTime;
             EndDateTime = settings.EndDateAndTime;
             Latitude = settings.Latitude;

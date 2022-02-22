@@ -7,19 +7,21 @@ using Autodesk.Revit.DB;
 
 namespace Insolaris.Geometry
 {
-    public class CalculationSurface
+    public sealed class CalculationSurface
     {
         public Reference FaceReference { get; }
         public List<SurfacePointWithValues> CalculationPoints { get; }
         public bool IsPartitioned { get; private set; }
         private Face Face { get; set; }
+        public double FaceArea { get; private set; }
 
         public CalculationSurface(Face f)
         {
-            if (!(f is PlanarFace) && !(f is CylindricalFace))
-                throw new InvalidOperationException($"Face is not planar or cylindrical, it is {f.GetType().Name}. This type of face cannot be partioned yet.");
+            if (!(f is PlanarFace))
+                throw new InvalidOperationException($"Face is not planar, it is {f.GetType().Name}. This type of face cannot be partitioned yet.");
 
             Face = f;
+            FaceArea = f.Area;
             FaceReference = f.Reference;
             CalculationPoints = new List<SurfacePointWithValues>();
         }
@@ -27,6 +29,7 @@ namespace Insolaris.Geometry
         public void UpdateFace(Face f)
         {
             Face = f;
+
         }
 
         public bool CreateOrUpdatePartition(double ds)
@@ -63,12 +66,11 @@ namespace Insolaris.Geometry
                     foreach (Edge ed in edAr)
                     {
                         double steps = ed.ApproximateLength / ds;
-                        int stepParameter = (int)(1 / steps);
-                        int stepCount = (int)steps;
+                        double stepParameter = 1 / steps;
 
-                        for (int i = 0; i < stepCount; i++)
+                        for (double de = 0; de < 1; de += stepParameter)
                         {
-                            UV uv = ed.EvaluateOnFace(i * stepParameter, Face);
+                            UV uv = ed.EvaluateOnFace(de, Face);
                             XYZ normal = Face.ComputeNormal(uv);
                             XYZ point = Face.Evaluate(uv);
 
