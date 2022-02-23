@@ -24,11 +24,12 @@ Mathematical model of calculation method uses right circular conical approximati
 
 &nbsp;&nbsp;&nbsp;&nbsp;<img src="https://render.githubusercontent.com/render/math?math=\large \frac{(lx%2Bmy%2Bnz)^2}{cos^2(\alpha)(l^{2}%2Bm^{2}%2Bn^{2})}=\frac{(ix%2Bjy%2Bkz)^2}{cos^2(f)(i^2%2Bj^2%2Bk^2)}"> **(3)**
 
+But because we are only looking for positively defined half of a mathematical cone (along the axis vector) the solution is always a regular plane equation.
+
 3D example graph can be seen in [Github page of this repo](https://kimvladislav.github.io/Insolaris.Kernel/). 
 
 <iframe src="https://www.geogebra.org/classic/kdk6xwfv?embed" width="1000" height="600" allowfullscreen style="border: 1px solid #e4e4e4;border-radius: 4px;" frameborder="0"></iframe>
 
-But because we are only looking for positively defined half of a mathematical cone (along the axis vector) the solution is always a regular plane equation.
 ### Two-cones-intersection plane equation
 <img src="https://render.githubusercontent.com/render/math?math=Ax%2BBy%2BCz=0"> - general plane equation.
 
