@@ -26,7 +26,7 @@ Mathematical model of calculation method uses right circular conical approximati
 
 3D example graph can be seen in [Github page of this repo](https://kimvladislav.github.io/Insolaris.Kernel/). 
 
-<!-- <iframe src="https://www.geogebra.org/classic/kdk6xwfv?embed" width="800" height="600" allowfullscreen style="border: 1px solid #e4e4e4;border-radius: 4px;" frameborder="0"></iframe> -->
+<iframe src="https://www.geogebra.org/classic/kdk6xwfv?embed" width="1000" height="600" allowfullscreen style="border: 1px solid #e4e4e4;border-radius: 4px;" frameborder="0"></iframe>
 
 But because we are only looking for positively defined half of a mathematical cone (along the axis vector) the solution is always a regular plane equation.
 ### Two-cones-intersection plane equation
