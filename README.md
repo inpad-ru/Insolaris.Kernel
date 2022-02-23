@@ -43,3 +43,22 @@ If axis vectors of BC and IC are unit vector, then both can be simplified as:
 Then:
 
 <img src="https://render.githubusercontent.com/render/math?math=\large B_2(lx%2Bmy%2Bnz)^2=B_1(ix%2Bjy%2Bkz)^2">
+
+<img src="https://render.githubusercontent.com/render/math?math=\large \sqrt{B_2}(lx%2Bmy%2Bnz)-\sqrt{B_1}(ix%2Bjy%2Bkz)=0"> 
+
+Modulus was ignored since we're only looking for a positively defined plane along BC axis. Thus:
+
+<img src="https://render.githubusercontent.com/render/math?math=A=\sqrt{B_2}l-\sqrt{B_1}i">
+<img src="https://render.githubusercontent.com/render/math?math=B=\sqrt{B_2}m-\sqrt{B_1}j">
+<img src="https://render.githubusercontent.com/render/math?math=C=\sqrt{B_2}n-\sqrt{B_1}k">
+
+Or simply:
+
+<img src="https://render.githubusercontent.com/render/math?math=A=cos(f)l-\cos(\alpha)i">
+<img src="https://render.githubusercontent.com/render/math?math=B=cos(f)m-\cos(\alpha)j">
+<img src="https://render.githubusercontent.com/render/math?math=C=cos(f)n-\cos(\alpha)k">
+
+Such plane with N(A,B,C) is a bounding plane by which we can cut insolation cone.
+
+### Bounding plane
+In case the context doesn't defy a bounding cone with angle (0,Pi/2) an insolation cone is still limited by a tangent plane at a given surface point, and it is a more simple subcase of bounding cone method.
