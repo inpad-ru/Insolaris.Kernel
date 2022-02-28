@@ -52,7 +52,9 @@
     <Compile Include="Model\ConceptualBuilding.cs" />
     <Compile Include="Model\ConstructionObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Calculation\CalculationResult.cs" />
     <Compile Include="Utils\InsolationCalculationUtils.cs" />
+    <Compile Include="Utils\MathUtils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

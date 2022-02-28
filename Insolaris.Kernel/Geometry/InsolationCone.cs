@@ -8,9 +8,8 @@ using Insolaris.Utils;
 
 namespace Insolaris.Geometry
 {
-    internal class InsolationCone
+    public sealed class InsolationCone
     {
-        private const double RadianSecondsRatio = 0.00007272205;
         public DateTime StartDateTime { get; }
         public DateTime EndDateTime { get; }
         public double Latitude { get; }
@@ -22,7 +21,7 @@ namespace Insolaris.Geometry
         public XYZ ConeFrameX { get; private set; }
         public XYZ ConeFrameY { get; private set; }
         public XYZ ConeFrameZ { get; private set; }
-        private Solid GenericConeSolid { get; set; }
+        public Solid GenericConeSolid { get; private set; }
 
         public double PeriodInRadians { get; private set; }
 
@@ -60,7 +59,7 @@ namespace Insolaris.Geometry
 
             Arc normalInsolationArc = Arc.Create(startVector, endVector, midVector);
             HalfAngle = Math.Asin(normalInsolationArc.Radius);
-            CastingRange = 39999 / Math.Sin(HalfAngle); //Maximum allowed length of an arc's radius in Revit is 40000, thus the casting length is also limited.
+            CastingRange = 29000 / Math.Sin(HalfAngle); //Maximum allowed length of an arc's radius in Revit is 30000, thus the casting length is also limited.
             PeriodInRadians = normalInsolationArc.Length / normalInsolationArc.Radius;
             StartVector = startVector;
             EndVector = endVector;
@@ -82,20 +81,36 @@ namespace Insolaris.Geometry
 
             Solid cone = SolidUtils.Clone(GenericConeSolid);
 
-            XYZ cutPlaneNormal = boundingConeHalfAngle == 0 
-                ? normal 
-                : InsolationCalculationUtils.GetPlaneNormalOfTwoIntersectingCones(normal, ConeFrameZ, boundingConeHalfAngle, HalfAngle);
+            bool isBoundingConeOrPlane = true;
+            if (MathUtils.AreDoublesAlmostEqual(0, boundingConeHalfAngle) || MathUtils.AreDoublesAlmostEqual(Math.PI / 2, boundingConeHalfAngle))
+                isBoundingConeOrPlane = false;
+
+            XYZ cutPlaneNormal = isBoundingConeOrPlane
+                ? InsolationCalculationUtils.GetPlaneNormalOfTwoIntersectingCones(normal, ConeFrameZ, boundingConeHalfAngle, HalfAngle)
+                : normal;
+
 
             Plane cutPlane = Plane.CreateByNormalAndOrigin(cutPlaneNormal, XYZ.Zero);
             CurveLoop cl = new CurveLoop();
-            double dist = CastingRange;
+            double dist = CastingRange * 2;
             cl.Append(Line.CreateBound(cutPlane.YVec * dist - cutPlane.XVec * dist, -cutPlane.XVec * dist - cutPlane.YVec * dist));
             cl.Append(Line.CreateBound(-cutPlane.XVec * dist - cutPlane.YVec * dist, cutPlane.XVec * dist - cutPlane.YVec * dist));
             cl.Append(Line.CreateBound(cutPlane.XVec * dist - cutPlane.YVec * dist, cutPlane.XVec * dist + cutPlane.YVec * dist));
             cl.Append(Line.CreateBound(cutPlane.XVec * dist + cutPlane.YVec * dist, -cutPlane.XVec * dist + cutPlane.YVec * dist));
 
-            Solid planeSolid = GeometryCreationUtilities.CreateExtrusionGeometry(new List<CurveLoop> { cl }, cutPlane.Normal, CastingRange);
-            BooleanOperationsUtils.ExecuteBooleanOperationModifyingOriginalSolid(cone, planeSolid, BooleanOperationsType.Intersect);
+            Solid planeSolid = GeometryCreationUtilities.CreateExtrusionGeometry(new List<CurveLoop> { cl }, cutPlane.Normal, dist);
+
+            try
+            {
+                BooleanOperationsUtils.ExecuteBooleanOperationModifyingOriginalSolid(cone, planeSolid, BooleanOperationsType.Intersect);
+            }
+            catch
+            {
+                return null;
+            }
+
+            if (cone == null)
+                return null;
 
             Transform trans = Transform.Identity;
             trans.Origin = center;
@@ -116,7 +131,7 @@ namespace Insolaris.Geometry
         /// <summary>
         /// This method creates a single-face solid of an insolation cone in a given point.
         /// </summary>
-        private void CreateOrUpdateGeneralConeSolid()
+        public void CreateOrUpdateGeneralConeSolid()
         {
             if (GenericConeSolid != null && GenericConeSolid.Volume > 0)
                 return;
@@ -160,23 +175,25 @@ namespace Insolaris.Geometry
             breper.FinishLoop(surfLoopId);
             breper.FinishFace(faceId);
 
-            Plane conePlane = Plane.CreateByThreePoints(startLine.GetEndPoint(0), startLine.GetEndPoint(1) - XYZ.BasisZ, startLine.GetEndPoint(1));
-            Plane cutPlane = Plane.CreateByThreePoints(startLine.GetEndPoint(1), castedEnd, startLine.GetEndPoint(0));
-            Line startOffsetLine = Line.CreateBound(startLine.GetEndPoint(0) + cutPlane.Normal, startLine.GetEndPoint(1) + cutPlane.Normal);
+            XYZ tempTriangleVertex1 = -ConeFrameZ;
+            XYZ tempTriangleVertex2 = (center - castedStart).Normalize();
+
+            Plane tempTrianglePlane = Plane.CreateByThreePoints(center, tempTriangleVertex1, tempTriangleVertex2);
             // Single-face solid cannot be created via BrepBuilder even if it's an OpenShell, so you have add an additional face
-            // Consider eliminating unnecessary geometry by cuting it with BooleanOperationsUtils.CutWithHalfSpace()
-            var brepPlane = BRepBuilderSurfaceGeometry.Create(conePlane, null);
+            var brepPlane = BRepBuilderSurfaceGeometry.Create(tempTrianglePlane, null);
             var planeId = breper.AddFace(brepPlane, false);
             var planeLoopId = breper.AddLoop(planeId);
 
-            var edge4 = BRepBuilderEdgeGeometry.Create(startLine.GetEndPoint(0), startOffsetLine.GetEndPoint(0));
-            var edge5 = BRepBuilderEdgeGeometry.Create(startOffsetLine);
-            var edge6 = BRepBuilderEdgeGeometry.Create(startOffsetLine.GetEndPoint(1), startLine.GetEndPoint(1));
+            Line tempTriangleLine1 = Line.CreateBound(center, tempTriangleVertex1);
+            Line tempTriangleLine2 = Line.CreateBound(tempTriangleVertex1, tempTriangleVertex2);
+            Line tempTriangleLine3 = Line.CreateBound(tempTriangleVertex2, center);
+            var edge4 = BRepBuilderEdgeGeometry.Create(tempTriangleLine1);
+            var edge5 = BRepBuilderEdgeGeometry.Create(tempTriangleLine2);
+            var edge6 = BRepBuilderEdgeGeometry.Create(tempTriangleLine3);
             var edgeId4 = breper.AddEdge(edge4);
             var edgeId5 = breper.AddEdge(edge5);
             var edgeId6 = breper.AddEdge(edge6);
 
-            breper.AddCoEdge(planeLoopId, edgeId1, true);
             breper.AddCoEdge(planeLoopId, edgeId4, false);
             breper.AddCoEdge(planeLoopId, edgeId5, false);
             breper.AddCoEdge(planeLoopId, edgeId6, false);
@@ -188,11 +205,20 @@ namespace Insolaris.Geometry
             var outcomeResult = breper.Finish();
             GenericConeSolid = breper.GetResult();
 
+            Plane cutPlane = Plane.CreateByNormalAndOrigin(-ConeFrameZ, center);
+            double cutPrismHalfWidth = 100;
+            XYZ cutPrismV1 = cutPlane.Origin + cutPlane.XVec * cutPrismHalfWidth + cutPlane.YVec * cutPrismHalfWidth;
+            XYZ cutPrismV2 = cutPrismV1 - cutPlane.YVec * 2 * cutPrismHalfWidth;
+            XYZ cutPrismV3 = cutPrismV2 - cutPlane.XVec * 2 * cutPrismHalfWidth;
+            XYZ cutPrismV4 = cutPrismV3 + cutPlane.YVec * 2 * cutPrismHalfWidth;
+
             CurveLoop cutTempLoop = new CurveLoop();
-            cutTempLoop.Append(Line.CreateBound(startLine.GetEndPoint(1), startLine.GetEndPoint(0)));
-            cutTempLoop.Append(Line.CreateBound(startLine.GetEndPoint(0), insolationArc.GetEndPoint(1)));
-            cutTempLoop.Append(Line.CreateBound(insolationArc.GetEndPoint(1), startLine.GetEndPoint(1)));
-            Solid cutTempSolid = GeometryCreationUtilities.CreateExtrusionGeometry(new List<CurveLoop> { cutTempLoop }, cutPlane.Normal, 10);
+            cutTempLoop.Append(Line.CreateBound(cutPrismV1, cutPrismV2));
+            cutTempLoop.Append(Line.CreateBound(cutPrismV2, cutPrismV3));
+            cutTempLoop.Append(Line.CreateBound(cutPrismV3, cutPrismV4));
+            cutTempLoop.Append(Line.CreateBound(cutPrismV4, cutPrismV1));
+
+            Solid cutTempSolid = GeometryCreationUtilities.CreateExtrusionGeometry(new List<CurveLoop> { cutTempLoop }, cutPlane.Normal, cutPrismHalfWidth);
             BooleanOperationsUtils.ExecuteBooleanOperationModifyingOriginalSolid(GenericConeSolid, cutTempSolid, BooleanOperationsType.Difference);
         }
     }

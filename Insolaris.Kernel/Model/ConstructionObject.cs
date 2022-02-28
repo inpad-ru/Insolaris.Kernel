@@ -58,7 +58,7 @@ namespace Insolaris.Model
                 XYZ point3D = face.Evaluate(bbCenter);
                 XYZ normal = face.ComputeNormal(bbCenter);
 
-                if (isBuildingOrArea && normal.Z > midZ)
+                if (isBuildingOrArea && (normal.Z > midZ || normal.Z < -midZ))
                     continue;
                 if (!isBuildingOrArea && normal.Z < midZ)
                     continue;
@@ -68,8 +68,11 @@ namespace Insolaris.Model
             return surfaces;
         }
 
-        protected void CreateSurfacePartition(double ds)
+        public void CreateSurfacePartition(double ds)
         {
+            if (ds == 0)
+                throw new InvalidCastException("ds is zero");
+
             int pointCount = 0;
             double area = 0;
             foreach (var surf in Surfaces)

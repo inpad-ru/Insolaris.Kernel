@@ -9,6 +9,8 @@ namespace Insolaris.Utils
 {
     internal static class InsolationCalculationUtils
     {
+        public static double RadianSecondsRatio { get; } = 0.00007272205;
+
         internal static XYZ GetPlaneNormalOfTwoIntersectingCones(XYZ boundingConeAxis, XYZ boundableConeAxis, double boundingHalfAngle, double boundableHalfAngle)
         {
             double b1 = Math.Cos(boundableHalfAngle);
