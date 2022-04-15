@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,9 @@ namespace Insolaris.Model
         public List<Geometry.CalculationSurface> Surfaces { get; protected set; }
         public int CalculationPointsNumber { get; private set; }
         public double TotalCalculationSurfaceArea { get; private set; }
+        public bool IsShading { get; set; } = true;
+        public bool IsSelected { get; set; } = true;
+        public string Name { get; set; }
 
         protected static List<Geometry.CalculationSurface> GetCalculationSurfaces(Element elem, bool isBuildingOrArea)   
         {
@@ -22,8 +26,9 @@ namespace Insolaris.Model
             var geometry = elem.get_Geometry(geomOptions);
             if (geometry == null)
                 throw new ArgumentNullException(nameof(geometry));
-
-            List<Face> faces = new List<Face>();
+            Transform elemTransform = (elem as FamilyInstance).GetTotalTransform();
+            ConcurrentBag<Face> faces = new ConcurrentBag<Face>();
+            //Parallel.ForEach(geometry, go =>
             foreach (GeometryObject go in geometry)
             {
                 if (go is Solid sol)
@@ -33,7 +38,7 @@ namespace Insolaris.Model
                 }
                 else if (go is GeometryInstance gi)
                 {
-                    var instGeometry = gi.GetInstanceGeometry();
+                    var instGeometry = gi.GetSymbolGeometry();
                     foreach (var instObj in instGeometry)
                     {
                         if (instObj is Solid solid)
@@ -43,13 +48,14 @@ namespace Insolaris.Model
                         }
                     }
                 }
-            }
+            }//);
 
             //if (faces.Count == 0)
-
+            //Parallel.ForEach(faces, face =>
             foreach (Face face in faces)
             {
-                if (!(face is PlanarFace)) continue;
+                if (!(face is PlanarFace))
+                    continue;//return;//
 
                 double midZ = 0.70710678118;
 
@@ -59,12 +65,12 @@ namespace Insolaris.Model
                 XYZ normal = face.ComputeNormal(bbCenter);
 
                 if (isBuildingOrArea && (normal.Z > midZ || normal.Z < -midZ))
-                    continue;
+                    continue;//return;//
                 if (!isBuildingOrArea && normal.Z < midZ)
-                    continue;
+                    continue;//return;//
 
-                surfaces.Add(new Geometry.CalculationSurface(face));
-            }
+                surfaces.Add(new Geometry.CalculationSurface(face, elemTransform));
+            }//);
             return surfaces;
         }
 
@@ -75,12 +81,13 @@ namespace Insolaris.Model
 
             int pointCount = 0;
             double area = 0;
+            //Parallel.ForEach(Surfaces, surf =>
             foreach (var surf in Surfaces)
             {
                 surf.CreateOrUpdatePartition(ds);
                 pointCount += surf.CalculationPoints.Count;
                 area += surf.FaceArea;
-            }
+            }//);
             CalculationPointsNumber = pointCount;
             TotalCalculationSurfaceArea = area;
         }

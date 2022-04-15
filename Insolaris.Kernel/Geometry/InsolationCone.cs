@@ -42,18 +42,24 @@ namespace Insolaris.Geometry
         {
             DateTime oldActiveTime = settings.ActiveFrameTime;
 
-            DateTime start = settings.StartDateAndTime;
-            DateTime end = settings.EndDateAndTime;
+            DateTime start = settings.StartDateAndTime;//.AddHours(settings.TimeZone);
+            DateTime end = settings.EndDateAndTime;//.AddHours(settings.TimeZone);
             DateTime mid = start + new TimeSpan((end - start).Ticks / 2);
 
             settings.StartDateAndTime = start;
-            double startAzimuth = settings.GetFrameAzimuth(settings.ActiveFrame);
-            XYZ startVector = InsolationCalculationUtils.GetSunDirection(settings.GetFrameAltitude(settings.ActiveFrame), settings.GetFrameAzimuth(settings.ActiveFrame));
+            double altitude = settings.GetFrameAltitude(settings.ActiveFrame);
+            double azimuth = settings.GetFrameAzimuth(settings.ActiveFrame);
+            XYZ startVector = InsolationCalculationUtils.GetSunDirection(altitude, azimuth);
+
             settings.StartDateAndTime = mid;
-            XYZ midVector = InsolationCalculationUtils.GetSunDirection(settings.GetFrameAltitude(settings.ActiveFrame), settings.GetFrameAzimuth(settings.ActiveFrame));
+            altitude = settings.GetFrameAltitude(settings.ActiveFrame);
+            azimuth = settings.GetFrameAzimuth(settings.ActiveFrame);
+            XYZ midVector = InsolationCalculationUtils.GetSunDirection(altitude, azimuth);
+
             settings.StartDateAndTime = end;
-            double endAzimuth = settings.GetFrameAzimuth(settings.ActiveFrame);
-            XYZ endVector = InsolationCalculationUtils.GetSunDirection(settings.GetFrameAltitude(settings.ActiveFrame), settings.GetFrameAzimuth(settings.ActiveFrame));
+            altitude = settings.GetFrameAltitude(settings.ActiveFrame);
+            azimuth = settings.GetFrameAzimuth(settings.ActiveFrame);
+            XYZ endVector = InsolationCalculationUtils.GetSunDirection(altitude, azimuth);
 
             settings.StartDateAndTime = oldActiveTime;
 
@@ -65,7 +71,7 @@ namespace Insolaris.Geometry
             EndVector = endVector;
             ConeFrameX = (normalInsolationArc.GetEndPoint(0) - normalInsolationArc.Center).Normalize();
             ConeFrameZ = normalInsolationArc.Center.Normalize();
-            ConeFrameY = PeriodInRadians < Math.PI ? ConeFrameZ.CrossProduct(ConeFrameX) : -ConeFrameZ.CrossProduct(ConeFrameX);
+            ConeFrameY = -ConeFrameZ.CrossProduct(ConeFrameX);//PeriodInRadians < Math.PI ? ConeFrameZ.CrossProduct(ConeFrameX) : -ConeFrameZ.CrossProduct(ConeFrameX);
         }
 
         /// <summary>
@@ -82,8 +88,8 @@ namespace Insolaris.Geometry
             Solid cone = SolidUtils.Clone(GenericConeSolid);
 
             bool isBoundingConeOrPlane = true;
-            if (MathUtils.AreDoublesAlmostEqual(0, boundingConeHalfAngle) || MathUtils.AreDoublesAlmostEqual(Math.PI / 2, boundingConeHalfAngle))
-                isBoundingConeOrPlane = false;
+            //if (MathUtils.AreDoublesAlmostEqual(0, boundingConeHalfAngle) || MathUtils.AreDoublesAlmostEqual(Math.PI / 2, boundingConeHalfAngle))
+            //    isBoundingConeOrPlane = false;
 
             XYZ cutPlaneNormal = isBoundingConeOrPlane
                 ? InsolationCalculationUtils.GetPlaneNormalOfTwoIntersectingCones(normal, ConeFrameZ, boundingConeHalfAngle, HalfAngle)
@@ -143,7 +149,8 @@ namespace Insolaris.Geometry
             XYZ castedStart = center + StartVector * CastingRange;
             XYZ castedEnd = center + EndVector * CastingRange;
             Line startLine = Line.CreateBound(castedStart, center);
-            Arc insolationArc = Arc.Create(center + ConeFrameZ * CastingRange * Math.Cos(HalfAngle),
+            Arc insolationArc = Arc.Create(
+                center + ConeFrameZ * CastingRange * Math.Cos(HalfAngle),
                 CastingRange * Math.Sin(HalfAngle), 
                 0, 
                 PeriodInRadians, 
@@ -153,6 +160,11 @@ namespace Insolaris.Geometry
             BRepBuilder breper = new BRepBuilder(BRepType.OpenShell);
             var brepSurf = BRepBuilderSurfaceGeometry.Create(surf, null);
             var faceId = breper.AddFace(brepSurf, false);
+            
+            XYZ st0 = startLine.GetEndPoint(0);
+            XYZ st1 = startLine.GetEndPoint(1);
+            XYZ arcSt0 = insolationArc.CreateReversed().GetEndPoint(0);
+            XYZ arcSt1 = insolationArc.CreateReversed().GetEndPoint(1);
 
             BRepBuilderEdgeGeometry edge1 = BRepBuilderEdgeGeometry.Create(startLine);
             BRepBuilderEdgeGeometry edge2 = BRepBuilderEdgeGeometry.Create(center, castedEnd);

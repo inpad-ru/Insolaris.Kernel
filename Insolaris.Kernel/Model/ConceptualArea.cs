@@ -14,6 +14,7 @@ namespace Insolaris.Model
         {
             RevitElement = element;
             Surfaces = GetCalculationSurfaces(element, false);
+            Name = element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString();
         }
     }
 }

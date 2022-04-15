@@ -34,10 +34,18 @@ namespace Insolaris.Calculation
             var distinctedShadows = DistinctSegments(shadowSegments);
             var segmentPeriods = ConvertShadowToInsolactionSegments(distinctedShadows, startParam, endParam);
             var periods = segmentPeriods.Select(x => x.Item2 - x.Item1);
-            var biggestSegment = periods.OrderBy(x => x).Last();
-            var segmentTimes = segmentPeriods.Select(x => ConvertPeriodToTime(x)).ToList();
-            var totalPeriod = periods.Sum();
-            var totalTime = TimeSpan.FromSeconds(totalPeriod / Utils.InsolationCalculationUtils.RadianSecondsRatio);
+            
+            double biggestSegment = 0;
+            List<TimeSpan> segmentTimes = new List<TimeSpan>();
+            double totalPeriod = 0;
+            TimeSpan totalTime = TimeSpan.Zero;
+            if (segmentPeriods.Any())
+            {
+                biggestSegment = periods.OrderBy(x => x).Last();
+                segmentTimes = segmentPeriods.Select(x => ConvertPeriodToTime(x)).ToList();
+                totalPeriod = periods.Sum();
+                totalTime = TimeSpan.FromSeconds(totalPeriod / Utils.InsolationCalculationUtils.RadianSecondsRatio);
+            }
 
             return new CalculationResult(totalPeriod, totalTime, segmentPeriods, segmentTimes, biggestSegment);
         }
@@ -57,11 +65,11 @@ namespace Insolaris.Calculation
         static List<Tuple<double, double>> ConvertShadowToInsolactionSegments(List<Tuple<double, double>> shadows, double startParam, double endParam)
         {
             const double tolerance = 0.004363323;
-            List<Tuple<double,double>> insolationSegments = new List<Tuple<double,double>>();
+            List<Tuple<double, double>> insolationSegments = new List<Tuple<double, double>>();
             double lastSegmentEnd = startParam;
             foreach (var segment in shadows)
             {
-                if (segment.Item2 > endParam) break;
+                if (segment.Item2 > endParam + tolerance) break;
 
                 double ds = segment.Item1 - lastSegmentEnd;
                 if (ds > tolerance)
@@ -79,7 +87,7 @@ namespace Insolaris.Calculation
 
         static TimeSpan ConvertPeriodToTime(Tuple<double, double> period)
         {
-            return TimeSpan.FromSeconds((period.Item2 - period.Item1)/Utils.InsolationCalculationUtils.RadianSecondsRatio);
+            return TimeSpan.FromSeconds((period.Item2 - period.Item1) / Utils.InsolationCalculationUtils.RadianSecondsRatio);
         }
 
         static List<Tuple<double, double>> DistinctSegments(List<Tuple<double, double>> segments)
@@ -102,7 +110,7 @@ namespace Insolaris.Calculation
             return distinctSegments;
         }
 
-        static Tuple<double, double> SegmentsUnion(Tuple<double,double> segment1, Tuple<double, double> segment2)
+        static Tuple<double, double> SegmentsUnion(Tuple<double, double> segment1, Tuple<double, double> segment2)
         {
             return new Tuple<double, double>(Math.Min(segment1.Item1, segment2.Item1), Math.Max(segment1.Item2, segment2.Item2));
         }
