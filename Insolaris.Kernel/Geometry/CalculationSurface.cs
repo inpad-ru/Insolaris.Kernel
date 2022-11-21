@@ -12,10 +12,11 @@ namespace Insolaris.Geometry
         private Face face;
         public Reference FaceReference { get; }
         public List<SurfacePointWithValues> CalculationPoints { get; }
+        public List<SurfacePointWithValues> TruthCalcPoints { get; }
         public bool IsPartitioned { get; private set; }
         public Face Face => face;
         public double FaceArea { get; private set; }
-        private Transform elementTransform { get; set; }
+        public Transform ElementTransform { get; }
 
         public CalculationSurface(Face f, Transform elementTransform)
         {
@@ -26,7 +27,8 @@ namespace Insolaris.Geometry
             FaceArea = f.Area;
             FaceReference = f.Reference;
             CalculationPoints = new List<SurfacePointWithValues>();
-            this.elementTransform = elementTransform;
+            TruthCalcPoints = new List<SurfacePointWithValues>();
+            this.ElementTransform = elementTransform;
 
         }
 
@@ -48,31 +50,54 @@ namespace Insolaris.Geometry
                 var fBB = face.GetBoundingBox();
                 double uStart = fBB.Min.U;
                 double vStart = fBB.Min.V;
+                double u_center = uStart, v_center = vStart;
                 //Parallel.For(uStart, fBB.Max.U, u =>
+                double u_remainder = fBB.Max.U % ds;
+                double v_remainder = fBB.Max.V % ds;
+                double partHeight = ds;
+                double partWidth = ds;
                 for (double u = uStart; u < fBB.Max.U; u += ds)
                 {
+                    if (u < fBB.Max.U - ds)
+                    {
+                        u_center = u + ds / 2;
+                        partWidth = ds;
+                    }
+                    else
+                    {
+                        u_center = fBB.Max.U - u_remainder / 2;
+                        partWidth = u_remainder;
+                    }
+                    if (partWidth < 0.005)
+                        continue;
+
                     for (double v = vStart; v < fBB.Max.V; v += ds)
                     {
-                        UV uv = new UV(u, v);
-                        if (!face.IsInside(uv))
+                        if (v < fBB.Max.V - ds)
+                        {
+                            v_center = v + ds / 2;
+                            partHeight = ds;
+                        }
+                        else
+                        {
+                            v_center = fBB.Max.V - v_remainder / 2;
+                            partHeight = v_remainder;
+                        }
+                        if (partHeight < 0.005)
                             continue;
 
-                        XYZ normal = elementTransform.OfVector(face.ComputeNormal(uv));
-                        XYZ point = elementTransform.OfPoint(face.Evaluate(uv));
-                        SurfacePointWithValues p = new SurfacePointWithValues(uv, point, normal);
-                        CalculationPoints.Add(p);
+                        UV uv_center = new UV(u_center, v_center);
+                        if (!face.IsInside(uv_center))
+                            continue;
+
+
+                        XYZ normal = ElementTransform.OfVector(face.ComputeNormal(uv_center));
+                        XYZ point_center = ElementTransform.OfPoint(face.Evaluate(uv_center));
+                        SurfacePointWithValues p_center = new SurfacePointWithValues(uv_center, point_center, normal, partHeight, partWidth);
+                        TruthCalcPoints.Add(p_center);
                     }
-                    UV u_vLast = new UV(u, fBB.Max.V);
-                    XYZ normalLastV = elementTransform.OfVector(face.ComputeNormal(u_vLast));
-                    XYZ pointLastV = elementTransform.OfPoint(face.Evaluate(u_vLast));
-                    SurfacePointWithValues p_lastV = new SurfacePointWithValues(u_vLast, pointLastV, normalLastV);
-                    CalculationPoints.Add(p_lastV);
                 }//);
-                UV uLast_vLast = new UV(fBB.Max.U, fBB.Max.V);
-                XYZ normalLast = elementTransform.OfVector(face.ComputeNormal(uLast_vLast));
-                XYZ pointLast = elementTransform.OfPoint(face.Evaluate(uLast_vLast));
-                SurfacePointWithValues p_last = new SurfacePointWithValues(uLast_vLast, pointLast, normalLast);
-                CalculationPoints.Add(p_last);
+
                 //foreach (EdgeArray edAr in face.EdgeLoops)
                 //{
                 //    foreach (Edge ed in edAr)
@@ -83,16 +108,16 @@ namespace Insolaris.Geometry
                 //        for (double de = 0; de < 1; de += stepParameter)
                 //        {
                 //            UV uv = ed.EvaluateOnFace(de, face);
-                //            XYZ normal = elementTransform.OfVector(face.ComputeNormal(uv));
-                //            XYZ point = elementTransform.OfPoint(face.Evaluate(uv));
+                //            XYZ normal = ElementTransform.OfVector(face.ComputeNormal(uv));
+                //            XYZ point = ElementTransform.OfPoint(face.Evaluate(uv));
 
                 //            SurfacePointWithValues p = new SurfacePointWithValues(uv, point, normal);
                 //            CalculationPoints.Add(p);
                 //        }
 
                 //        UV endUV = ed.EvaluateOnFace(1, face);
-                //        XYZ endPoint = elementTransform.OfPoint(ed.Evaluate(1));
-                //        XYZ endNormal = elementTransform.OfVector(face.ComputeNormal(endUV));
+                //        XYZ endPoint = ElementTransform.OfPoint(ed.Evaluate(1));
+                //        XYZ endNormal = ElementTransform.OfVector(face.ComputeNormal(endUV));
 
                 //        SurfacePointWithValues endEdgePoint = new SurfacePointWithValues(endUV, endPoint, endNormal);
                 //        CalculationPoints.Add(endEdgePoint);

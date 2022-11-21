@@ -12,12 +12,16 @@ namespace Insolaris.Geometry
         public UV PointUV { get; }
         public XYZ Point3D { get; }
         public XYZ Normal { get; }
+        public double Width { get; }
+        public double Height { get; set; }
         public Calculation.CalculationResult CalculationResult { get; set; }
-        public SurfacePointWithValues(UV uv, XYZ p, XYZ normal)
+        public SurfacePointWithValues(UV uv, XYZ p, XYZ normal, double h, double w)
         {
             PointUV = uv;
             Point3D = p;
             Normal = normal;
+            Height = h;
+            Width = w;
         }
 
     }

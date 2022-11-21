@@ -85,7 +85,7 @@ namespace Insolaris.Model
             foreach (var surf in Surfaces)
             {
                 surf.CreateOrUpdatePartition(ds);
-                pointCount += surf.CalculationPoints.Count;
+                pointCount += surf.TruthCalcPoints.Count;
                 area += surf.FaceArea;
             }//);
             CalculationPointsNumber = pointCount;
