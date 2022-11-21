@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Autodesk.Revit.DB;
 
 namespace Insolaris.Model
@@ -84,8 +85,11 @@ namespace Insolaris.Model
             //Parallel.ForEach(Surfaces, surf =>
             foreach (var surf in Surfaces)
             {
-                surf.CreateOrUpdatePartition(ds);
-                pointCount += surf.CalculationPoints.Count;
+                if(!surf.CreateOrUpdatePartition(ds))
+                {
+                    MessageBox.Show("Не построилась точка - центр плитки");
+                };
+                pointCount += surf.TruthCalcPoints.Count;
                 area += surf.FaceArea;
             }//);
             CalculationPointsNumber = pointCount;
