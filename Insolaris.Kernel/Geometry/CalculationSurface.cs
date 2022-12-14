@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Autodesk.Revit.DB;
 
 namespace Insolaris.Geometry
@@ -17,6 +18,8 @@ namespace Insolaris.Geometry
         public Face Face => face;
         public double FaceArea { get; private set; }
         public Transform ElementTransform { get; }
+        public Dictionary<double, List<SurfacePointWithValues>> PointsInPlan { get; set; } = new Dictionary<double, List<SurfacePointWithValues>>();
+
 
         public CalculationSurface(Face f, Transform elementTransform)
         {
@@ -29,6 +32,8 @@ namespace Insolaris.Geometry
             CalculationPoints = new List<SurfacePointWithValues>();
             TruthCalcPoints = new List<SurfacePointWithValues>();
             this.ElementTransform = elementTransform;
+            var ds = 3000 / 304.8;                                                //Это заглушка, сделать, чтобы ds тянулось из VM
+            CreateOrUpdatePartition(ds);
         }
 
         public void UpdateFace(Face f)
@@ -57,6 +62,7 @@ namespace Insolaris.Geometry
                 double partWidth = ds;
                 for (double u = uStart; u < fBB.Max.U; u += ds)
                 {
+                   
                     var deltaU = fBB.Max.U - ds;
                     if (u < deltaU || u_remainder < 1E-3) //Remanders can be so small as BRepBuilder won't can build DirectShape => we need to ignore boxes in height < 1E-3
                     {                                     
@@ -93,13 +99,27 @@ namespace Insolaris.Geometry
                         if (!face.IsInside(uv_center))
                             continue;
 
-
                         XYZ normal = ElementTransform.OfVector(face.ComputeNormal(uv_center));
                         XYZ normal_new = face.ComputeNormal(uv_center);
                         XYZ point_center = ElementTransform.OfPoint(face.Evaluate(uv_center));
                         XYZ point_center_new = face.Evaluate(uv_center);
                         SurfacePointWithValues p_center = new SurfacePointWithValues(uv_center, point_center, normal, partHeight, partWidth);
                         TruthCalcPoints.Add(p_center);
+                       
+
+                        //===//Логика формирования словаря, чтобы упорядочить точки в горизонтальной плоскости для КЕО
+                        if (PointsInPlan.ContainsKey(p_center.Point3D.Z))
+                        {
+                            PointsInPlan[p_center.Point3D.Z].Add(p_center);
+                        }
+                        else
+                        {
+                            var listPoint = new List<SurfacePointWithValues>();
+                            PointsInPlan.Add(p_center.Point3D.Z, listPoint);
+                            PointsInPlan[p_center.Point3D.Z].Add(p_center);
+                        }
+                        //===========================================================================================
+
                     }
                 }//);
 
@@ -134,6 +154,7 @@ namespace Insolaris.Geometry
             }
             catch
             {
+                MessageBox.Show("поймал");
                 return false;
             }
         }

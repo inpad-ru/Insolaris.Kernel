@@ -6,18 +6,22 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Autodesk.Revit.DB;
+using Insolaris.Geometry;
+using Insolaris.Kernel.Geometry;
 
 namespace Insolaris.Model
 {
-    public abstract class ConstructionObject
+    public abstract class ConstructionObject //Надо будет взять в констукторе solids, а верх и боковые грани в разых методах
     {
         public Element RevitElement { get; protected set; }
         public List<Geometry.CalculationSurface> Surfaces { get; protected set; }
+        public Dictionary<double, CalculationPlan> CalculationPlans { get;  set; } = new Dictionary<double, CalculationPlan>();
         public int CalculationPointsNumber { get; private set; }
         public double TotalCalculationSurfaceArea { get; private set; }
         public bool IsShading { get; set; } = true;
         public bool IsSelected { get; set; } = true;
         public string Name { get; set; }
+        public Transform TransformOfObject { get; set; }
 
         protected static List<Geometry.CalculationSurface> GetCalculationSurfaces(Element elem, bool isBuildingOrArea)   
         {
@@ -69,8 +73,8 @@ namespace Insolaris.Model
                     continue;//return;//
                 if (!isBuildingOrArea && normal.Z < midZ)
                     continue;//return;//
-
-                surfaces.Add(new Geometry.CalculationSurface(face, elemTransform));
+                var surf = new CalculationSurface(face, elemTransform);
+                surfaces.Add(surf);
             }//);
             return surfaces;
         }
@@ -95,5 +99,59 @@ namespace Insolaris.Model
             CalculationPointsNumber = pointCount;
             TotalCalculationSurfaceArea = area;
         }
+
+        public Dictionary<double, CalculationPlan> GetCalculationPlans(Element elem)
+        {
+            var calculationPlans = new Dictionary<double, CalculationPlan>();
+            foreach (var surf in Surfaces)
+            {
+            
+                var transform = surf.ElementTransform;
+                var face = surf.Face;
+                var pointInPlan = surf.PointsInPlan;
+                foreach (var pair in pointInPlan)
+                {
+                    var elevation = pair.Key;                
+                    var points = pair.Value;
+                    if (CalculationPlans.ContainsKey(elevation))
+                    {
+                        CalculationPlans[elevation].CalculationPoints.Add(surf,points);
+                    }
+                    else
+                    {
+                        var calcPlan = new CalculationPlan(face, transform, surf, points);
+                        CalculationPlans.Add(elevation, calcPlan);
+                        calculationPlans.Add(elevation, calcPlan);
+                    }
+                }
+            }
+
+            return calculationPlans;
+        }
+
+        /*public Transform CreateTransform(Element element)
+        {
+            Options geomOptions = new Options { ComputeReferences = true };
+            var geometry = element.get_Geometry(geomOptions);
+            PlanarFace planar = null;
+            foreach (GeometryObject go in geometry)
+            {
+                if (go is Solid)
+                {
+                    var sol = go as Solid;
+                    foreach (Face face in sol.Faces)
+                    {
+                        if ((face as PlanarFace).FaceNormal == XYZ.BasisZ)
+                        {
+                            planar = face as PlanarFace;
+                        }
+                    }
+                }
+            }
+            if (planar == null)
+            {
+                return null;
+            }
+        }*/
     }
 }

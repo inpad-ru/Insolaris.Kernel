@@ -46,7 +46,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Geometry\CalculationPlan.cs" />
     <Compile Include="Geometry\CalculationSurface.cs" />
+    <Compile Include="Geometry\CalculationWall.cs" />
+    <Compile Include="Geometry\CustomWindow.cs" />
     <Compile Include="Geometry\InsolationCone.cs" />
     <Compile Include="Geometry\SurfacePointWithValues.cs" />
     <Compile Include="Model\ConceptualArea.cs" />
