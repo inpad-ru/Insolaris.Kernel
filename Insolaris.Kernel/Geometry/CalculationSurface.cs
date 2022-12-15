@@ -5,10 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Autodesk.Revit.DB;
+using Insolaris.Kernel.Geometry;
 
 namespace Insolaris.Geometry
 {
-    public sealed class CalculationSurface
+    public sealed class CalculationSurface  //Создание точек от этого класса начинается для любого плагина, получение первоначального разбиения точек по граням очень важно
     {
         private Face face;
         public Reference FaceReference { get; }
@@ -20,6 +21,8 @@ namespace Insolaris.Geometry
         public Transform ElementTransform { get; }
         public Dictionary<double, List<SurfacePointWithValues>> PointsInPlan { get; set; } = new Dictionary<double, List<SurfacePointWithValues>>();
 
+        //После рефакторинга
+        public Dictionary<double, List<SurfacePointWithValues>> PointsInPlan1 { get; set; } = new Dictionary<double, List<SurfacePointWithValues>>();
 
         public CalculationSurface(Face f, Transform elementTransform)
         {
@@ -104,6 +107,7 @@ namespace Insolaris.Geometry
                         XYZ point_center = ElementTransform.OfPoint(face.Evaluate(uv_center));
                         XYZ point_center_new = face.Evaluate(uv_center);
                         SurfacePointWithValues p_center = new SurfacePointWithValues(uv_center, point_center, normal, partHeight, partWidth);
+                        SurfacePointWithValues ins_point = new SurfacePointWithValues(uv_center, point_center, normal, partHeight, partWidth);
                         TruthCalcPoints.Add(p_center);
                        
 
@@ -117,6 +121,19 @@ namespace Insolaris.Geometry
                             var listPoint = new List<SurfacePointWithValues>();
                             PointsInPlan.Add(p_center.Point3D.Z, listPoint);
                             PointsInPlan[p_center.Point3D.Z].Add(p_center);
+                        }
+                        //===========================================================================================
+
+                        //===//Логика формирования словаря, чтобы упорядочить точки в горизонтальной плоскости для КЕО ПОСЛЕ РЕФАКТОРИНГА
+                        if (PointsInPlan.ContainsKey(ins_point.Point3D.Z))
+                        {
+                            PointsInPlan[ins_point.Point3D.Z].Add(p_center);
+                        }
+                        else
+                        {
+                            var listPoint = new List<SurfacePointWithValues>();
+                            PointsInPlan1.Add(ins_point.Point3D.Z, listPoint);
+                            PointsInPlan1[ins_point.Point3D.Z].Add(ins_point);
                         }
                         //===========================================================================================
 

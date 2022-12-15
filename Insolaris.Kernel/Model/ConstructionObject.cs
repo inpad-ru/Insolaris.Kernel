@@ -22,6 +22,11 @@ namespace Insolaris.Model
         public bool IsSelected { get; set; } = true;
         public string Name { get; set; }
         public Transform TransformOfObject { get; set; }
+        
+        //После рефакторинга это уже будет не словарь, а лист 
+        public List<CalculationPlan> CalculationPlans1 { get; set; }
+
+
 
         protected static List<Geometry.CalculationSurface> GetCalculationSurfaces(Element elem, bool isBuildingOrArea)   
         {
@@ -125,6 +130,30 @@ namespace Insolaris.Model
                     }
                 }
             }
+            return calculationPlans;
+        }
+        public List<CalculationPlan> GetCalculationPlans1(Element elem)
+        {
+            var calculationPlans = new List<CalculationPlan>();
+            var surfForPlanCreate = Surfaces.First();
+            var dictForPlanCreate = surfForPlanCreate.PointsInPlan1;
+            foreach (var pair in dictForPlanCreate)
+            {
+                var plan = new CalculationPlan();
+                plan.Elevation = pair.Key;
+                CalculationPlans1.Add(plan);
+            }
+            //Теперь есть лист планов
+
+            foreach (var surf in Surfaces)
+            {
+                foreach (var pair in surf.PointsInPlan1)
+                {
+                    var calculationWall = new CalculationWall(pair.Value); //создали стенку
+                    var plan = CalculationPlans1.Where(x => x.Elevation == pair.Key).FirstOrDefault();
+                    plan.CalculationWalls.Add(calculationWall);
+                }
+            }
 
             return calculationPlans;
         }
@@ -153,5 +182,6 @@ namespace Insolaris.Model
                 return null;
             }
         }*/
+
     }
 }

@@ -46,15 +46,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Geometry\CalculationPoint.cs" />
+    <Compile Include="Geometry\CalculationWall.cs" />
     <Compile Include="Geometry\CalculationPlan.cs" />
     <Compile Include="Geometry\CalculationSurface.cs" />
-    <Compile Include="Geometry\CalculationWall.cs" />
     <Compile Include="Geometry\CustomWindow.cs" />
     <Compile Include="Geometry\InsolationCone.cs" />
+    <Compile Include="Geometry\PointNLC.cs" />
     <Compile Include="Geometry\SurfacePointWithValues.cs" />
     <Compile Include="Model\ConceptualArea.cs" />
     <Compile Include="Model\ConceptualBuilding.cs" />
     <Compile Include="Model\ConstructionObject.cs" />
+    <Compile Include="Model\ShadowObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Calculation\CalculationResult.cs" />
     <Compile Include="Utils\InsolationCalculationUtils.cs" />

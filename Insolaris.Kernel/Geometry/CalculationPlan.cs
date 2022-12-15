@@ -20,10 +20,24 @@ namespace Insolaris.Kernel.Geometry
         public Face Face => face;
         public double FaceArea { get; private set; }
         public Transform ElementTransform { get; }
-        public double Elevation { get; private set; }
         public double ds { get; } //Под стиль старого кода это будет SurfaceIncrement
         public double MeshStepParallelNormal { get; } //Шаг сетки параллельной нормали поверхности здания //Задаёт пользователь (пока не задаём)
-        public double MeshStepOrtoNormal { get; set; } = 0; //Шаг сетки перпендикулярной нормали поверхности здания //Задаёт пользователь (будет 6 точек по 10000
+        public double MeshStepOrtoNormal { get; set; } = 0; //Шаг сетки перпендикулярной нормали поверхности здания //Задаёт пользователь (будет 6 точек по 10000)
+
+
+
+
+
+
+
+
+
+        // Свойства после рефакторинга
+        public double Elevation { get; set; }
+        public List<CalculationWall> CalculationWalls {get; set;}
+
+
+
         public CalculationPlan(Face f, Transform elementTransform, CalculationSurface surface, List<SurfacePointWithValues> points)
         {
             if (!(f is PlanarFace))
@@ -39,6 +53,12 @@ namespace Insolaris.Kernel.Geometry
                                                                    //но от пользователя ещё потребуется и сама высота окна и расстояние от окна до пола
             this.ds = ds;
             CreateNaturalLightCalcPoint(surface, points);
+
+        }
+        public CalculationPlan()
+        {
+
+
 
         }
         public bool CreateNaturalLightCalcPoint(CalculationSurface surface, List<SurfacePointWithValues> points) //Метод, который формирует расчётную плоскость с помощью пользовательских данных
