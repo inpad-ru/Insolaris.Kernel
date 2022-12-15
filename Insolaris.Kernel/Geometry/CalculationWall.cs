@@ -26,6 +26,7 @@ namespace Insolaris.Kernel.Geometry
             var ds4 = 1000 / 304.8; //Размер сетки задаст пользователь
             var ds5 = 6000 / 304.8; //Глубина расчёта задаст пользователь
             CreateCalculationMesh(ins_point, ds3, ds4, ds5);
+            CreateNormal();
 
         }
         private void CreateWindows(List<SurfacePointWithValues> ins_point, double height, double width)
@@ -39,7 +40,13 @@ namespace Insolaris.Kernel.Geometry
 
 
 
+
             //PointNLCs 
+        }
+        private void CreateNormal()
+        {
+
+
         }
     }
 }
