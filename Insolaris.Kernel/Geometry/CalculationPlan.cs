@@ -16,7 +16,7 @@ namespace Insolaris.Kernel.Geometry
 
         // Свойства после рефакторинга
         public double Elevation { get; set; }
-        public List<CalculationWall> CalculationWalls {get; set;}
+        public List<CalculationWall> CalculationWalls { get; set; } = new List<CalculationWall>();
 
 
 
@@ -51,7 +51,6 @@ namespace Insolaris.Kernel.Geometry
                     var truthCalcPoint = projectPointOnFloor + (-normal) * (i);         //Подвинул точку вглубь здания на 6 метров (но мне нужно не только на 6)
                     listPoint.Add(truthCalcPoint);                                      //В будущем по необходимости нужно сменить тип XYZ на SurfacePointWithValues
                 }
-                
             }
         }
 
