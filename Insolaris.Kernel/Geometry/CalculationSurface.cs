@@ -125,9 +125,9 @@ namespace Insolaris.Geometry
                         //===========================================================================================
 
                         //===//Логика формирования словаря, чтобы упорядочить точки в горизонтальной плоскости для КЕО ПОСЛЕ РЕФАКТОРИНГА
-                        if (PointsInPlan.ContainsKey(ins_point.Point3D.Z))
+                        if (PointsInPlan1.ContainsKey(ins_point.Point3D.Z))
                         {
-                            PointsInPlan[ins_point.Point3D.Z].Add(p_center);
+                            PointsInPlan1[ins_point.Point3D.Z].Add(p_center);
                         }
                         else
                         {

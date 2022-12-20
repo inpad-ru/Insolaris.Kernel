@@ -141,7 +141,7 @@ namespace Insolaris.Model
             {
                 var plan = new CalculationPlan();
                 plan.Elevation = pair.Key;
-                CalculationPlans1.Add(plan);
+                calculationPlans.Add(plan);
             }
             //Теперь есть лист планов
 
@@ -149,8 +149,8 @@ namespace Insolaris.Model
             {
                 foreach (var pair in surf.PointsInPlan1)
                 {
-                    var calculationWall = new CalculationWall(pair.Value); //создали стенку
-                    var plan = CalculationPlans1.Where(x => x.Elevation == pair.Key).FirstOrDefault();
+                    var calculationWall = new CalculationWall(pair.Value, surf); //создали стенку 
+                    var plan = calculationPlans.Where(x => x.Elevation == pair.Key).FirstOrDefault();
                     plan.CalculationWalls.Add(calculationWall);
                 }
             }
