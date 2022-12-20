@@ -16,7 +16,7 @@ namespace Insolaris.Model
             Surfaces = GetCalculationSurfaces(element, true);
             Name = element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString();
             CalculationPlans = GetCalculationPlans(element); //Но для Insolaris-a он не нужен!!! Может быть в данном классе создать несколько конструкторов???
-            CalculationPlans1 = GetCalculationPlans1(element); //ПОСЛЕ РЕФАКТОРИНГА
+            CalculationPlans1 = GetCalculationPlans1(element); //ПОСЛЕ РЕФАКТОРИНГА //Этот метод нельзя вызывать из конструктора, надо отдельно
             //TransformOfObject = CreateTransform(element);
         }
     }

@@ -17,7 +17,7 @@ namespace Insolaris.Kernel.Geometry
         public CalculationSurface CalculationSurface { get; set; }
         public List<CustomWindow> Windows { get; set; }
         public List<ShadowObject> ShadowObjects { get; set; }
-        public PointNLC[,] PointNLCs { get; set; } = new PointNLC[6, 10];
+        public PointNLC[,] PointNLCs { get; set; } = new PointNLC[1, 1];
         public List<List<PointNLC>> PointNLCs1 { get; set; } = new List<List<PointNLC>>();
         public Transform LocalBasis { get; set; }  //Думаю понадобиться самостоятельно составить Transform для местной системы координат
         public CalculationWall(List<SurfacePointWithValues> ins_point, CalculationSurface surface)
@@ -25,7 +25,7 @@ namespace Insolaris.Kernel.Geometry
             CalculationSurface = surface;
             var localNormal = (CalculationSurface.Face as PlanarFace).FaceNormal;
             Normal = localNormal;
-            Xdir = XYZ.BasisZ.CrossProduct(localNormal).Normalize();
+            Xdir = XYZ.BasisZ.CrossProduct(localNormal).Normalize(); //В другую сторону
             Ydir = localNormal;
             var ds1 = 2000 / 304.8; //Размер окна задаст пользователь
             var ds2 = 2000 / 304.8; //Размер окна задаст пользователь
@@ -49,8 +49,8 @@ namespace Insolaris.Kernel.Geometry
             { 
                 var up = point.Point3D + XYZ.BasisZ * height / 2;
                 var down = point.Point3D - XYZ.BasisZ * width / 2;
-                var leftDirection = Normal.CrossProduct(XYZ.BasisZ).Normalize();
-                var rightDirection = XYZ.BasisZ.CrossProduct(Normal).Normalize();
+                var leftDirection = Normal.CrossProduct(XYZ.BasisZ).Normalize(); //поменять направления
+                var rightDirection = XYZ.BasisZ.CrossProduct(Normal).Normalize(); //поменять направления
                 var dl = leftDirection * width / 2;
                 var dr = rightDirection * width / 2;
                 var left = point.Point3D + leftDirection * width / 2;
@@ -61,12 +61,32 @@ namespace Insolaris.Kernel.Geometry
         }
         private void CreateCalculationMesh(List<SurfacePointWithValues> ins_points, double normalStep, double ortoNormalStep, double depth)
         {
-            
-            var meshStart = ins_points.First().Point3D - Ydir * depth;
+            //Получение длины сетки
+            var edgeArray = CalculationSurface.Face.EdgeLoops.get_Item(0);
+            double length = 0;
+            foreach (var edge in edgeArray)
+            {
+                if (edge is Edge)
+                {
+                    var line = (edge as Edge).AsCurve() as Line;
+                    var direction = line.Direction;
+                    if (direction.Z > -1E-3 && direction.Z < 1E-3)
+                    {
+                        length = line.Length;
+                        break;
+                    }
+                }
+            }
+
+            int N = (int)Math.Floor(length / ortoNormalStep);
+            int M = (int)Math.Floor(depth / normalStep);
+            PointNLCs = new PointNLC[N, M];
+
+            var meshStart = ins_points.First().Point3D - Ydir * depth; //Не факт что левая верхняя точка на поверхности
             var p = new PointNLC();
             p.XYZ = meshStart;
             PointNLCs[0, 0] = p; 
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 6; i++) //Проверка на пропуск первой итерации (0,0), остальное пойдёт нормально! без continue
             {
                 for (int j = 1; j < 10; j++)
                 {

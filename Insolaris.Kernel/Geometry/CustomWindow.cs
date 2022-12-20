@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace Insolaris.Kernel.Geometry
 {
-
     public class CustomWindow
     {
         public XYZ Up { get; }
@@ -19,7 +18,7 @@ namespace Insolaris.Kernel.Geometry
         public XYZ LeftForCount { get; set; }
         public XYZ RightForCount { get; set; }
         public double Area { get; }
-        public CustomWindow(XYZ up, XYZ down, XYZ left, XYZ right)
+        public CustomWindow(XYZ up, XYZ down, XYZ left, XYZ right) //Можно задать двумя точками
         {
             Up = up;
             Down = down;
@@ -33,6 +32,5 @@ namespace Insolaris.Kernel.Geometry
             LeftForCount = transform.OfPoint(Left);
             RightForCount = transform.OfPoint(Right);
         }
-
     }
 }

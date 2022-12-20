@@ -150,7 +150,7 @@ namespace Insolaris.Model
                 foreach (var pair in surf.PointsInPlan1)
                 {
                     var calculationWall = new CalculationWall(pair.Value, surf); //создали стенку 
-                    var plan = calculationPlans.Where(x => x.Elevation == pair.Key).FirstOrDefault();
+                    var plan = calculationPlans.Where(x => x.Elevation == pair.Key).FirstOrDefault();//Можно оптимизировать с помощью CalculationPlan ---> Dictionary <double, List<CalculationWalls>>
                     plan.CalculationWalls.Add(calculationWall);
                 }
             }
