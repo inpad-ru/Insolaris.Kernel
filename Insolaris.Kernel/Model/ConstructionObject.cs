@@ -132,7 +132,16 @@ namespace Insolaris.Model
             }
             return calculationPlans;
         }
-        public List<CalculationPlan> GetCalculationPlans1(Element elem)
+        public List<CalculationPlan> GetCalculationPlans1(Element elem, 
+                                                          double roomWidth, 
+                                                          double levelHeight,
+                                                          double wallThickness,
+                                                          double windowWidth,
+                                                          double windowHeight,
+                                                          double calculationDepth,
+                                                          double meshNormalStep,
+                                                          double meshOrtoNormalStep
+                                                          )
         {
             var calculationPlans = new List<CalculationPlan>();
             var surfForPlanCreate = Surfaces.First();
@@ -149,7 +158,16 @@ namespace Insolaris.Model
             {
                 foreach (var pair in surf.PointsInPlan1)
                 {
-                    var calculationWall = new CalculationWall(pair.Value, surf); //создали стенку 
+                    var calculationWall = new CalculationWall(pair.Value, 
+                                                              surf,
+                                                              roomWidth,
+                                                              levelHeight,
+                                                              wallThickness,
+                                                              windowWidth,
+                                                              windowHeight,
+                                                              calculationDepth,
+                                                              meshNormalStep,
+                                                              meshOrtoNormalStep); //создали стенку 
                     var plan = calculationPlans.Where(x => x.Elevation == pair.Key).FirstOrDefault();//Можно оптимизировать с помощью CalculationPlan ---> Dictionary <double, List<CalculationWalls>>
                     plan.CalculationWalls.Add(calculationWall);
                 }

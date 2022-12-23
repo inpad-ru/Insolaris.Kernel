@@ -20,20 +20,24 @@ namespace Insolaris.Kernel.Geometry
         public PointNLC[,] PointNLCs { get; set; } = new PointNLC[1, 1];
         public List<List<PointNLC>> PointNLCs1 { get; set; } = new List<List<PointNLC>>();
         public Transform LocalBasis { get; set; }  //Думаю понадобиться самостоятельно составить Transform для местной системы координат
-        public CalculationWall(List<SurfacePointWithValues> ins_point, CalculationSurface surface)
+        public CalculationWall(List<SurfacePointWithValues> ins_point, 
+                                            CalculationSurface surface,
+                                            double roomWidth,
+                                            double levelHeight,
+                                            double wallThickness,
+                                            double windowWidth,
+                                            double windowHeight,
+                                            double calculationDepth,
+                                            double meshNormalStep,
+                                            double meshOrtoNormalStep)
         {
             CalculationSurface = surface;
             var localNormal = (CalculationSurface.Face as PlanarFace).FaceNormal;
             Normal = localNormal;
             Xdir = XYZ.BasisZ.CrossProduct(localNormal).Normalize(); //В другую сторону
             Ydir = localNormal;
-            var ds1 = 2000 / 304.8; //Размер окна задаст пользователь
-            var ds2 = 2000 / 304.8; //Размер окна задаст пользователь
-            CreateWindows(ins_point, ds1, ds2);
-            var ds3 = 1000 / 304.8; //Размер сетки задаст пользователь
-            var ds4 = 3000 / 304.8; //Размер сетки задаст пользователь
-            var ds5 = 6000 / 304.8; //Глубина расчёта задаст пользователь
-            CreateCalculationMesh(ins_point, ds3, ds4, ds5);
+            CreateWindows(ins_point, windowHeight, windowWidth);
+            CreateCalculationMesh(ins_point, meshNormalStep, meshOrtoNormalStep, calculationDepth);
             CreateNormal();
 
         }
@@ -86,15 +90,15 @@ namespace Insolaris.Kernel.Geometry
             var p = new PointNLC();
             p.XYZ = meshStart;
             PointNLCs[0, 0] = p; 
-            for (int i = 0; i < 6; i++) //Проверка на пропуск первой итерации (0,0), остальное пойдёт нормально! без continue
+            for (int i = 0; i < N; i++) //Проверка на пропуск первой итерации (0,0), остальное пойдёт нормально! без continue
             {
-                for (int j = 1; j < 10; j++)
+                for (int j = 1; j < M; j++)
                 {
                     var newP = new PointNLC();
                     newP.XYZ = PointNLCs[i, j - 1].XYZ + Xdir * ortoNormalStep;
                     PointNLCs[i, j] = newP;
                 } 
-                if (i == 5)
+                if (i == N - 1)
                 {
                     continue;
                 }
