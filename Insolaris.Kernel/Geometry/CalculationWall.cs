@@ -17,7 +17,7 @@ namespace Insolaris.Kernel.Geometry
         public CalculationSurface CalculationSurface { get; set; }
         public List<CustomWindow> Windows { get; set; }
         public List<ShadowObject> ShadowObjects { get; set; }
-        public PointNLC[,] PointNLCs { get; set; } = new PointNLC[1, 1];
+        public PointNLC[,] PointNLCs { get; set; }
         public List<List<PointNLC>> PointNLCs1 { get; set; } = new List<List<PointNLC>>();
         public Transform LocalBasis { get; set; }  //Думаю понадобиться самостоятельно составить Transform для местной системы координат
         public CalculationWall(List<SurfacePointWithValues> ins_point, 
@@ -53,8 +53,8 @@ namespace Insolaris.Kernel.Geometry
             { 
                 var up = point.Point3D + XYZ.BasisZ * height / 2;
                 var down = point.Point3D - XYZ.BasisZ * width / 2;
-                var leftDirection = Normal.CrossProduct(XYZ.BasisZ).Normalize(); //поменять направления
-                var rightDirection = XYZ.BasisZ.CrossProduct(Normal).Normalize(); //поменять направления
+                var leftDirection = Normal.CrossProduct(XYZ.BasisZ).Normalize(); 
+                var rightDirection = XYZ.BasisZ.CrossProduct(Normal).Normalize(); 
                 var dl = leftDirection * width / 2;
                 var dr = rightDirection * width / 2;
                 var left = point.Point3D + leftDirection * width / 2;
