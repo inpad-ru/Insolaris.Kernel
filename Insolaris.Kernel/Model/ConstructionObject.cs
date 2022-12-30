@@ -15,13 +15,14 @@ namespace Insolaris.Model
     {
         public Element RevitElement { get; protected set; }
         public List<Geometry.CalculationSurface> Surfaces { get; protected set; }
-        public Dictionary<double, CalculationPlan> CalculationPlans { get;  set; } = new Dictionary<double, CalculationPlan>();
+        public Dictionary<double, CalculationPlan> CalculationPlans { get; set; } = new Dictionary<double, CalculationPlan>();
         public int CalculationPointsNumber { get; private set; }
         public double TotalCalculationSurfaceArea { get; private set; }
         public bool IsShading { get; set; } = true;
         public bool IsSelected { get; set; } = true;
         public string Name { get; set; }
         public Transform TransformOfObject { get; set; }
+        public double ToleranceNLC { get; set; }
         
         //После рефакторинга это уже будет не словарь, а лист 
         public List<CalculationPlan> CalculationPlans1 { get; set; }
@@ -139,8 +140,8 @@ namespace Insolaris.Model
                                                           double windowWidth,
                                                           double windowHeight,
                                                           double calculationDepth,
-                                                          double meshNormalStep,
-                                                          double meshOrtoNormalStep
+                                                          double meshOrtoNormalStep,
+                                                          double meshNormalStep
                                                           )
         {
             var calculationPlans = new List<CalculationPlan>();
@@ -160,14 +161,15 @@ namespace Insolaris.Model
                 {
                     var calculationWall = new CalculationWall(pair.Value, 
                                                               surf,
-                                                              roomWidth,
-                                                              levelHeight,
-                                                              wallThickness,
-                                                              windowWidth,
-                                                              windowHeight,
-                                                              calculationDepth,
-                                                              meshNormalStep,
-                                                              meshOrtoNormalStep); //создали стенку 
+                                                              roomWidth / 304.8,
+                                                              levelHeight / 304.8,
+                                                              wallThickness / 304.8,
+                                                              windowWidth / 304.8,
+                                                              windowHeight / 304.8,
+                                                              calculationDepth / 304.8,
+                                                              meshOrtoNormalStep / 304.8,
+                                                              meshNormalStep / 304.8
+                                                              ); //создали стенку 
                     var plan = calculationPlans.Where(x => x.Elevation == pair.Key).FirstOrDefault();//Можно оптимизировать с помощью CalculationPlan ---> Dictionary <double, List<CalculationWalls>>
                     plan.CalculationWalls.Add(calculationWall);
                 }

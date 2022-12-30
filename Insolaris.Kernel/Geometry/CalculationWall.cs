@@ -17,7 +17,7 @@ namespace Insolaris.Kernel.Geometry
         public CalculationSurface CalculationSurface { get; set; }
         public List<CustomWindow> Windows { get; set; }
         public List<ShadowObject> ShadowObjects { get; set; }
-        public PointNLC[,] PointNLCs { get; set; } = new PointNLC[1, 1];
+        public PointNLC[,] PointNLCs { get; set; }
         public List<List<PointNLC>> PointNLCs1 { get; set; } = new List<List<PointNLC>>();
         public Transform LocalBasis { get; set; }  //Думаю понадобиться самостоятельно составить Transform для местной системы координат
         public CalculationWall(List<SurfacePointWithValues> ins_point, 
@@ -28,13 +28,14 @@ namespace Insolaris.Kernel.Geometry
                                             double windowWidth,
                                             double windowHeight,
                                             double calculationDepth,
-                                            double meshNormalStep,
-                                            double meshOrtoNormalStep)
+                                            double meshOrtoNormalStep,
+                                            double meshNormalStep
+                                            )
         {
             CalculationSurface = surface;
             var localNormal = (CalculationSurface.Face as PlanarFace).FaceNormal;
             Normal = localNormal;
-            Xdir = XYZ.BasisZ.CrossProduct(localNormal).Normalize(); //В другую сторону
+            Xdir = XYZ.BasisZ.CrossProduct(localNormal).Normalize();
             Ydir = localNormal;
             CreateWindows(ins_point, windowHeight, windowWidth);
             CreateCalculationMesh(ins_point, meshNormalStep, meshOrtoNormalStep, calculationDepth);
@@ -82,8 +83,8 @@ namespace Insolaris.Kernel.Geometry
                 }
             }
 
-            int N = (int)Math.Floor(length / ortoNormalStep);
-            int M = (int)Math.Floor(depth / normalStep);
+            int N = (int)Math.Floor(depth / normalStep);
+            int M = (int)Math.Floor(length / ortoNormalStep) - 1; 
             PointNLCs = new PointNLC[N, M];
 
             var meshStart = ins_points.First().Point3D - Ydir * depth; //Не факт что левая верхняя точка на поверхности
@@ -97,7 +98,7 @@ namespace Insolaris.Kernel.Geometry
                     var newP = new PointNLC();
                     newP.XYZ = PointNLCs[i, j - 1].XYZ + Xdir * ortoNormalStep;
                     PointNLCs[i, j] = newP;
-                } 
+                }
                 if (i == N - 1)
                 {
                     continue;
@@ -106,10 +107,10 @@ namespace Insolaris.Kernel.Geometry
                 newColomn.XYZ = PointNLCs[i, 0].XYZ + Ydir * normalStep;
                 PointNLCs[i + 1, 0] = newColomn;
             }
-
         }
         private void CreateNormal()
         {
+
 
 
         }
