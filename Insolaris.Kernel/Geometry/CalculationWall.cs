@@ -54,8 +54,8 @@ namespace Insolaris.Kernel.Geometry
             { 
                 var up = point.Point3D + XYZ.BasisZ * height / 2;
                 var down = point.Point3D - XYZ.BasisZ * width / 2;
-                var leftDirection = Normal.CrossProduct(XYZ.BasisZ).Normalize(); //поменять направления
-                var rightDirection = XYZ.BasisZ.CrossProduct(Normal).Normalize(); //поменять направления
+                var leftDirection = Normal.CrossProduct(XYZ.BasisZ).Normalize(); 
+                var rightDirection = XYZ.BasisZ.CrossProduct(Normal).Normalize(); 
                 var dl = leftDirection * width / 2;
                 var dr = rightDirection * width / 2;
                 var left = point.Point3D + leftDirection * width / 2;
